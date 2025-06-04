@@ -4,7 +4,6 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,8 +33,7 @@ public class UserReportsCachingUseCase {
     return userReportsRepository.findByAreaId(areaId, pageable);
   }
 
-  @CachePut(value = "userReports", key = "#result.id")
-  @CacheEvict(value = "userReports", key = "'page_*'", allEntries = false)
+  @CacheEvict(value = "userReports", allEntries = true)
   public UserReportsEntity save(UserReportsEntity userReport) {
     return userReportsRepository.save(userReport);
   }
