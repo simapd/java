@@ -125,12 +125,6 @@ public class UserReportsController {
 
   @PutMapping("/{id}")
   public ResponseEntity<Object> update(@PathVariable String id, @Valid @RequestBody UpdateUserReportsDTO updateDTO) {
-    Optional<UserReportsEntity> existing = userReportsCachingUseCase.findById(id);
-
-    if (existing.isEmpty()) {
-      return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User report not found");
-    }
-
     try {
       UserReportsDTO userReportsDTO = new UserReportsDTO();
       userReportsDTO.setAreaId(updateDTO.getAreaId());
@@ -151,12 +145,6 @@ public class UserReportsController {
   @DeleteMapping("/{id}")
   public ResponseEntity<Object> delete(@PathVariable String id) {
     try {
-      Optional<UserReportsEntity> existing = userReportsCachingUseCase.findById(id);
-
-      if (existing.isEmpty()) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User report not found");
-      }
-
       deleteUserReportsUseCase.execute(id);
       return ResponseEntity.noContent().build();
     } catch (EntityNotFoundException e) {
