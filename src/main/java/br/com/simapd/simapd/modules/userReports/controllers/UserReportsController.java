@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.simapd.simapd.modules.userReports.UserReportsEntity;
+import br.com.simapd.simapd.modules.userReports.dto.UpdateUserReportsDTO;
 import br.com.simapd.simapd.modules.userReports.dto.UserReportsDTO;
 import br.com.simapd.simapd.modules.userReports.mapper.UserReportsMapper;
 import br.com.simapd.simapd.modules.userReports.useCases.CreateUserReportsUseCase;
@@ -123,7 +124,7 @@ public class UserReportsController {
   }
 
   @PutMapping("/{id}")
-  public ResponseEntity<Object> update(@PathVariable String id, @Valid @RequestBody UserReportsDTO userReportsDTO) {
+  public ResponseEntity<Object> update(@PathVariable String id, @Valid @RequestBody UpdateUserReportsDTO updateDTO) {
     Optional<UserReportsEntity> existing = userReportsCachingUseCase.findById(id);
 
     if (existing.isEmpty()) {
@@ -131,8 +132,15 @@ public class UserReportsController {
     }
 
     try {
-      UserReportsDTO updatedReport = updateUserReportsUseCase.execute(id, userReportsDTO);
-      return ResponseEntity.ok(updatedReport);
+      UserReportsDTO userReportsDTO = new UserReportsDTO();
+      userReportsDTO.setAreaId(updateDTO.getAreaId());
+      userReportsDTO.setDescription(updateDTO.getDescription());
+      userReportsDTO.setLocationInfo(updateDTO.getLocationInfo());
+      userReportsDTO.setPhotoUrl(updateDTO.getPhotoUrl());
+      userReportsDTO.setIsVerified(updateDTO.getIsVerified());
+
+      updateUserReportsUseCase.execute(id, userReportsDTO);
+      return ResponseEntity.noContent().build();
     } catch (EntityNotFoundException e) {
       return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
     } catch (Exception e) {
@@ -150,7 +158,7 @@ public class UserReportsController {
       }
 
       deleteUserReportsUseCase.execute(id);
-      return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+      return ResponseEntity.noContent().build();
     } catch (EntityNotFoundException e) {
       return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
     } catch (Exception e) {
