@@ -10,6 +10,9 @@ public class UpdateUserReportsDTO {
   @Pattern(regexp = "^[a-z0-9]{24}$", message = "Invalid CUID2 format")
   private String areaId;
 
+  @Pattern(regexp = "^[a-z0-9]{24}$", message = "Invalid CUID2 format")
+  private String userId;
+
   @Size(max = 500, message = "Description must not exceed 500 characters")
   private String description;
 

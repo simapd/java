@@ -33,6 +33,11 @@ public class UserReportsCachingUseCase {
     return userReportsRepository.findByAreaId(areaId, pageable);
   }
 
+  @Cacheable(value = "userReports", key = "'user_' + #userId + '_page_' + #pageable.pageNumber + '_' + #pageable.pageSize + '_' + #pageable.sort.toString()")
+  public Page<UserReportsEntity> findByUserId(String userId, Pageable pageable) {
+    return userReportsRepository.findByUserId(userId, pageable);
+  }
+
   @CacheEvict(value = "userReports", allEntries = true)
   public UserReportsEntity save(UserReportsEntity userReport) {
     return userReportsRepository.save(userReport);

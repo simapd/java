@@ -25,6 +25,12 @@ public class UpdateRiskAreasUseCase {
     if (updateRiskAreasDTO.getDescription() != null) {
       existingEntity.setDescription(updateRiskAreasDTO.getDescription());
     }
+    if (updateRiskAreasDTO.getLatitude() != null) {
+      existingEntity.setLatitude(updateRiskAreasDTO.getLatitude());
+    }
+    if (updateRiskAreasDTO.getLongitude() != null) {
+      existingEntity.setLongitude(updateRiskAreasDTO.getLongitude());
+    }
 
     RiskAreasEntity savedEntity = riskAreasCachingUseCase.save(existingEntity);
 

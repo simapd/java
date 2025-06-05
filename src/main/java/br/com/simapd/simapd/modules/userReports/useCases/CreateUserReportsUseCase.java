@@ -7,6 +7,7 @@ import br.com.simapd.simapd.modules.riskAreas.RiskAreasRepository;
 import br.com.simapd.simapd.modules.userReports.UserReportsEntity;
 import br.com.simapd.simapd.modules.userReports.dto.UserReportsDTO;
 import br.com.simapd.simapd.modules.userReports.mapper.UserReportsMapper;
+import br.com.simapd.simapd.modules.users.UsersRepository;
 import jakarta.persistence.EntityNotFoundException;
 
 @Service
@@ -18,10 +19,17 @@ public class CreateUserReportsUseCase {
   @Autowired
   private RiskAreasRepository riskAreasRepository;
 
+  @Autowired
+  private UsersRepository usersRepository;
+
   public UserReportsDTO execute(UserReportsDTO userReportsDTO) {
 
-    if (!riskAreasRepository.existsById(userReportsDTO.getAreaId())) {
+    if (userReportsDTO.getAreaId() != null && !riskAreasRepository.existsById(userReportsDTO.getAreaId())) {
       throw new EntityNotFoundException("Risk area not found!");
+    }
+
+    if (!usersRepository.existsById(userReportsDTO.getUserId())) {
+      throw new EntityNotFoundException("User not found!");
     }
 
     UserReportsEntity userReportsEntity = UserReportsMapper.toEntity(userReportsDTO);

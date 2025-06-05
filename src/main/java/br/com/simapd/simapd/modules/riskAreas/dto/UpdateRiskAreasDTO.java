@@ -11,4 +11,10 @@ public class UpdateRiskAreasDTO {
 
   @Size(max = 500, message = "Description must not exceed 500 characters")
   private String description;
+
+  @Size(max = 64, message = "Latitude must not exceed 64 characters")
+  private String latitude;
+
+  @Size(max = 64, message = "Longitude must not exceed 64 characters")
+  private String longitude;
 }

@@ -12,6 +12,7 @@ public class UserReportsMapper {
     UserReportsDTO dto = new UserReportsDTO();
     dto.setId(entity.getId());
     dto.setAreaId(entity.getAreaId());
+    dto.setUserId(entity.getUserId());
     dto.setDescription(entity.getDescription());
     dto.setLocationInfo(entity.getLocationInfo());
     dto.setPhotoUrl(entity.getPhotoUrl());
@@ -22,8 +23,9 @@ public class UserReportsMapper {
 
   public static UserReportsEntity toEntity(UserReportsDTO dto) {
     UserReportsEntity entity = new UserReportsEntity();
-    entity.setId(CUID.randomCUID2().toString());
+    entity.setId(CUID.randomCUID2(24).toString());
     entity.setAreaId(dto.getAreaId());
+    entity.setUserId(dto.getUserId());
     entity.setDescription(dto.getDescription());
     entity.setLocationInfo(dto.getLocationInfo());
     entity.setPhotoUrl(dto.getPhotoUrl());

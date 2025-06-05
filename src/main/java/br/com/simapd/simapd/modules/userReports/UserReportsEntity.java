@@ -30,8 +30,12 @@ public class UserReportsEntity {
   private RiskAreasEntity riskAreaEntity;
 
   @Pattern(regexp = "^[a-z0-9]{24}$", message = "Invalid CUID2 format")
-  @Column(name = "area_id", nullable = false)
+  @Column(name = "area_id", nullable = true)
   private String areaId;
+
+  @Pattern(regexp = "^[a-z0-9]{24}$", message = "Invalid CUID2 format")
+  @Column(name = "user_id", nullable = false)
+  private String userId;
 
   @Column(name = "description", nullable = false)
   @Size(max = 500, message = "Description must not exceed 500 characters")

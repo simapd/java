@@ -13,15 +13,19 @@ public class RiskAreasMapper {
     dto.setId(entity.getId());
     dto.setName(entity.getName());
     dto.setDescription(entity.getDescription());
+    dto.setLatitude(entity.getLatitude());
+    dto.setLongitude(entity.getLongitude());
     dto.setCreatedAt(entity.getCreatedAt());
     return dto;
   }
 
   public static RiskAreasEntity toEntity(RiskAreasDTO dto) {
     RiskAreasEntity entity = new RiskAreasEntity();
-    entity.setId(CUID.randomCUID2().toString());
+    entity.setId(CUID.randomCUID2(24).toString());
     entity.setName(dto.getName());
     entity.setDescription(dto.getDescription());
+    entity.setLatitude(dto.getLatitude());
+    entity.setLongitude(dto.getLongitude());
     entity.setCreatedAt(LocalDateTime.now());
     return entity;
   }

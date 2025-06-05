@@ -7,5 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface UserReportsRepository extends JpaRepository<UserReportsEntity, String> {
 
   Page<UserReportsEntity> findByAreaId(String areaId, Pageable pageable);
+  
+  Page<UserReportsEntity> findByUserId(String userId, Pageable pageable);
 
 }

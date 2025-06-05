@@ -31,7 +31,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/risk-areas")
+@RequestMapping("/api/risk-areas")
 public class RiskAreasController {
 
   @Autowired
