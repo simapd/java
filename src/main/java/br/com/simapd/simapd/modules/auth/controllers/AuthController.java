@@ -1,6 +1,7 @@
 package br.com.simapd.simapd.modules.auth.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -34,7 +35,7 @@ public class AuthController {
       LoginResponseDTO response = loginUseCase.execute(loginRequestDTO);
       return ResponseEntity.ok(response);
     } catch (Exception e) {
-      return ResponseEntity.unauthorized().build();
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
     }
   }
 
@@ -46,6 +47,6 @@ public class AuthController {
       UserResponseDTO userResponse = usersMapper.toResponseDTO(user);
       return ResponseEntity.ok(userResponse);
     }
-    return ResponseEntity.unauthorized().build();
+    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
   }
-} 
+}
