@@ -6,11 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import br.com.simapd.simapd.modules.auth.dto.LoginResponseDTO;
+import br.com.simapd.simapd.modules.auth.services.JwtService;
 import br.com.simapd.simapd.modules.riskAreas.RiskAreasRepository;
 import br.com.simapd.simapd.modules.users.UsersEntity;
 import br.com.simapd.simapd.modules.users.UsersRepository;
 import br.com.simapd.simapd.modules.users.dto.CreateUserRequestDTO;
-import br.com.simapd.simapd.modules.users.dto.UserResponseDTO;
 import br.com.simapd.simapd.modules.users.mapper.UsersMapper;
 import io.github.thibaultmeyer.cuid.CUID;
 
@@ -29,13 +30,14 @@ public class CreateUserUseCase {
   @Autowired
   private UsersMapper usersMapper;
 
-  public UserResponseDTO execute(CreateUserRequestDTO createUserRequestDTO) {
-    // Verificar se email já existe
+  @Autowired
+  private JwtService jwtService;
+
+  public LoginResponseDTO execute(CreateUserRequestDTO createUserRequestDTO) {
     if (usersRepository.existsByEmail(createUserRequestDTO.getEmail())) {
       throw new RuntimeException("Email already exists");
     }
 
-    // Verificar se a área de risco existe
     if (!riskAreasRepository.existsById(createUserRequestDTO.getAreaId())) {
       throw new RuntimeException("Risk area not found");
     }
@@ -49,7 +51,9 @@ public class CreateUserUseCase {
     user.setCreatedAt(LocalDateTime.now());
 
     UsersEntity savedUser = usersRepository.save(user);
-    
-    return usersMapper.toResponseDTO(savedUser);
+
+    String token = jwtService.generateToken(savedUser);
+
+    return new LoginResponseDTO(token, usersMapper.toResponseDTO(savedUser));
   }
-} 
+}

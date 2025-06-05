@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import br.com.simapd.simapd.modules.auth.dto.LoginResponseDTO;
 import br.com.simapd.simapd.modules.users.dto.CreateUserRequestDTO;
 import br.com.simapd.simapd.modules.users.dto.UpdateUserRequestDTO;
 import br.com.simapd.simapd.modules.users.dto.UserResponseDTO;
@@ -44,9 +45,9 @@ public class UsersController {
   private DeleteUserUseCase deleteUserUseCase;
 
   @PostMapping("/register")
-  public ResponseEntity<UserResponseDTO> createUser(@Valid @RequestBody CreateUserRequestDTO createUserRequestDTO) {
+  public ResponseEntity<LoginResponseDTO> createUser(@Valid @RequestBody CreateUserRequestDTO createUserRequestDTO) {
     try {
-      UserResponseDTO user = createUserUseCase.execute(createUserRequestDTO);
+      LoginResponseDTO user = createUserUseCase.execute(createUserRequestDTO);
       return ResponseEntity.status(HttpStatus.CREATED).body(user);
     } catch (RuntimeException e) {
       return ResponseEntity.badRequest().build();
