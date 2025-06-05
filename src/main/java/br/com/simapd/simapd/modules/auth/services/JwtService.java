@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import br.com.simapd.simapd.modules.users.UsersEntity;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -35,7 +36,14 @@ public class JwtService {
   }
 
   public String generateToken(UserDetails userDetails) {
-    return generateToken(new HashMap<>(), userDetails);
+    Map<String, Object> extraClaims = new HashMap<>();
+
+    if (userDetails instanceof UsersEntity) {
+      UsersEntity user = (UsersEntity) userDetails;
+      extraClaims.put("areaId", user.getAreaId());
+    }
+
+    return generateToken(extraClaims, userDetails);
   }
 
   public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
@@ -66,9 +74,13 @@ public class JwtService {
     return extractClaim(token, Claims::getExpiration);
   }
 
+  public String extractAreaId(String token) {
+    return extractClaim(token, claims -> claims.get("areaId", String.class));
+  }
+
   private Claims extractAllClaims(String token) {
     return Jwts
-        .parserBuilder()
+        .parser()
         .setSigningKey(getSignInKey())
         .build()
         .parseClaimsJws(token)
@@ -79,4 +91,4 @@ public class JwtService {
     byte[] keyBytes = Decoders.BASE64.decode(secretKey);
     return Keys.hmacShaKeyFor(keyBytes);
   }
-} 
+}
