@@ -57,7 +57,6 @@ public class UsersEntity implements UserDetails {
   @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
   private LocalDateTime createdAt;
 
-  // UserDetails implementation
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
     return List.of();
