@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 
 import br.com.simapd.simapd.modules.riskAreas.RiskAreasRepository;
 import br.com.simapd.simapd.modules.users.UsersEntity;
-import br.com.simapd.simapd.modules.users.UsersRepository;
 import br.com.simapd.simapd.modules.users.dto.UpdateUserRequestDTO;
 import br.com.simapd.simapd.modules.users.dto.UserResponseDTO;
 import br.com.simapd.simapd.modules.users.mapper.UsersMapper;
@@ -15,7 +14,7 @@ import br.com.simapd.simapd.modules.users.mapper.UsersMapper;
 public class UpdateUserUseCase {
 
   @Autowired
-  private UsersRepository usersRepository;
+  private UsersCachingUseCase usersCachingUseCase;
 
   @Autowired
   private RiskAreasRepository riskAreasRepository;
@@ -27,18 +26,16 @@ public class UpdateUserUseCase {
   private UsersMapper usersMapper;
 
   public UserResponseDTO execute(String id, UpdateUserRequestDTO updateUserRequestDTO) {
-    UsersEntity user = usersRepository.findById(id)
+    UsersEntity user = usersCachingUseCase.findById(id)
         .orElseThrow(() -> new RuntimeException("User not found"));
 
-    // Verificar se email já existe para outro usuário
-    if (updateUserRequestDTO.getEmail() != null && 
+    if (updateUserRequestDTO.getEmail() != null &&
         !updateUserRequestDTO.getEmail().equals(user.getEmail()) &&
-        usersRepository.existsByEmail(updateUserRequestDTO.getEmail())) {
+        usersCachingUseCase.existsByEmail(updateUserRequestDTO.getEmail())) {
       throw new RuntimeException("Email already exists");
     }
 
-    // Verificar se a área de risco existe
-    if (updateUserRequestDTO.getAreaId() != null && 
+    if (updateUserRequestDTO.getAreaId() != null &&
         !riskAreasRepository.existsById(updateUserRequestDTO.getAreaId())) {
       throw new RuntimeException("Risk area not found");
     }
@@ -59,8 +56,8 @@ public class UpdateUserUseCase {
       user.setAreaId(updateUserRequestDTO.getAreaId());
     }
 
-    UsersEntity updatedUser = usersRepository.save(user);
-    
+    UsersEntity updatedUser = usersCachingUseCase.save(user);
+
     return usersMapper.toResponseDTO(updatedUser);
   }
-} 
+}

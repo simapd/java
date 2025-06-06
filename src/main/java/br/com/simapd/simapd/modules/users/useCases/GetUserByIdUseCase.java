@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import br.com.simapd.simapd.modules.users.UsersEntity;
-import br.com.simapd.simapd.modules.users.UsersRepository;
 import br.com.simapd.simapd.modules.users.dto.UserResponseDTO;
 import br.com.simapd.simapd.modules.users.mapper.UsersMapper;
 
@@ -12,15 +11,15 @@ import br.com.simapd.simapd.modules.users.mapper.UsersMapper;
 public class GetUserByIdUseCase {
 
   @Autowired
-  private UsersRepository usersRepository;
+  private UsersCachingUseCase usersCachingUseCase;
 
   @Autowired
   private UsersMapper usersMapper;
 
   public UserResponseDTO execute(String id) {
-    UsersEntity user = usersRepository.findById(id)
+    UsersEntity user = usersCachingUseCase.findById(id)
         .orElseThrow(() -> new RuntimeException("User not found"));
 
     return usersMapper.toResponseDTO(user);
   }
-} 
+}

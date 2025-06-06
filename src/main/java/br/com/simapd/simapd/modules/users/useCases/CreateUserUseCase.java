@@ -10,7 +10,6 @@ import br.com.simapd.simapd.modules.auth.dto.LoginResponseDTO;
 import br.com.simapd.simapd.modules.auth.services.JwtService;
 import br.com.simapd.simapd.modules.riskAreas.RiskAreasRepository;
 import br.com.simapd.simapd.modules.users.UsersEntity;
-import br.com.simapd.simapd.modules.users.UsersRepository;
 import br.com.simapd.simapd.modules.users.dto.CreateUserRequestDTO;
 import br.com.simapd.simapd.modules.users.mapper.UsersMapper;
 import io.github.thibaultmeyer.cuid.CUID;
@@ -19,7 +18,7 @@ import io.github.thibaultmeyer.cuid.CUID;
 public class CreateUserUseCase {
 
   @Autowired
-  private UsersRepository usersRepository;
+  private UsersCachingUseCase usersCachingUseCase;
 
   @Autowired
   private RiskAreasRepository riskAreasRepository;
@@ -34,7 +33,7 @@ public class CreateUserUseCase {
   private JwtService jwtService;
 
   public LoginResponseDTO execute(CreateUserRequestDTO createUserRequestDTO) {
-    if (usersRepository.existsByEmail(createUserRequestDTO.getEmail())) {
+    if (usersCachingUseCase.existsByEmail(createUserRequestDTO.getEmail())) {
       throw new RuntimeException("Email already exists");
     }
 
@@ -50,7 +49,7 @@ public class CreateUserUseCase {
     user.setAreaId(createUserRequestDTO.getAreaId());
     user.setCreatedAt(LocalDateTime.now());
 
-    UsersEntity savedUser = usersRepository.save(user);
+    UsersEntity savedUser = usersCachingUseCase.save(user);
 
     String token = jwtService.generateToken(savedUser);
 

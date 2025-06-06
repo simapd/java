@@ -3,19 +3,17 @@ package br.com.simapd.simapd.modules.users.useCases;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import br.com.simapd.simapd.modules.users.UsersRepository;
-
 @Service
 public class DeleteUserUseCase {
 
   @Autowired
-  private UsersRepository usersRepository;
+  private UsersCachingUseCase usersCachingUseCase;
 
   public void execute(String id) {
-    if (!usersRepository.existsById(id)) {
+    if (!usersCachingUseCase.existsById(id)) {
       throw new RuntimeException("User not found");
     }
 
-    usersRepository.deleteById(id);
+    usersCachingUseCase.deleteById(id);
   }
-} 
+}
