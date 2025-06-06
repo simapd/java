@@ -31,7 +31,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/user-reports")
+@RequestMapping("/api/user-reports")
 public class UserReportsController {
 
   @Autowired
@@ -126,15 +126,8 @@ public class UserReportsController {
   @PutMapping("/{id}")
   public ResponseEntity<Object> update(@PathVariable String id, @Valid @RequestBody UpdateUserReportsDTO updateDTO) {
     try {
-      UserReportsDTO userReportsDTO = new UserReportsDTO();
-      userReportsDTO.setAreaId(updateDTO.getAreaId());
-      userReportsDTO.setDescription(updateDTO.getDescription());
-      userReportsDTO.setLocationInfo(updateDTO.getLocationInfo());
-      userReportsDTO.setPhotoUrl(updateDTO.getPhotoUrl());
-      userReportsDTO.setIsVerified(updateDTO.getIsVerified());
-
-      updateUserReportsUseCase.execute(id, userReportsDTO);
-      return ResponseEntity.noContent().build();
+      UserReportsDTO updatedReport = updateUserReportsUseCase.execute(id, updateDTO);
+      return ResponseEntity.ok(updatedReport);
     } catch (EntityNotFoundException e) {
       return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
     } catch (Exception e) {
@@ -151,6 +144,31 @@ public class UserReportsController {
       return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
     } catch (Exception e) {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error deleting user report: " + e.getMessage());
+    }
+  }
+
+  @GetMapping("/user/{userId}")
+  public ResponseEntity<Object> findByUserId(
+      @PathVariable String userId,
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "10") int size,
+      @RequestParam(defaultValue = "reportedAt") String sortBy,
+      @RequestParam(defaultValue = "desc") String sortDir) {
+
+    try {
+      Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
+
+      Pageable pageable = PageRequest.of(page, size, sort);
+      Page<UserReportsEntity> entities = userReportsCachingUseCase.findByUserId(userId, pageable);
+
+      if (entities.isEmpty()) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No user reports found for this user");
+      }
+
+      Page<UserReportsDTO> dtos = entities.map(UserReportsMapper::toDTO);
+      return ResponseEntity.ok(dtos);
+    } catch (Exception e) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error finding user reports: " + e.getMessage());
     }
   }
 }

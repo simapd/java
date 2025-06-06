@@ -14,9 +14,12 @@ public class UserReportsDTO {
 
   private String id;
 
-  @NotNull(message = "Area ID is required")
   @Pattern(regexp = "^[a-z0-9]{24}$", message = "Invalid CUID2 format")
   private String areaId;
+
+  @NotNull(message = "User ID is required")
+  @Pattern(regexp = "^[a-z0-9]{24}$", message = "Invalid CUID2 format")
+  private String userId;
 
   @NotNull(message = "Description is required")
   @Size(max = 500, message = "Description must not exceed 500 characters")

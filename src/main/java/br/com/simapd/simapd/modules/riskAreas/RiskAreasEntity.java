@@ -27,6 +27,14 @@ public class RiskAreasEntity {
   @Size(max = 500, message = "Description must not exceed 500 characters")
   private String description;
 
+  @Column(name = "latitude", nullable = false)
+  @Size(max = 64, message = "Latitude must not exceed 64 characters")
+  private String latitude;
+
+  @Column(name = "longitude", nullable = false)
+  @Size(max = 64, message = "Longitude must not exceed 64 characters")
+  private String longitude;
+
   @Column(name = "created_at", nullable = false)
   @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
   private LocalDateTime createdAt;
