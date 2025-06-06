@@ -41,6 +41,7 @@ public class JwtService {
     if (userDetails instanceof UsersEntity) {
       UsersEntity user = (UsersEntity) userDetails;
       extraClaims.put("areaId", user.getAreaId());
+      extraClaims.put("userId", user.getId());
     }
 
     return generateToken(extraClaims, userDetails);
@@ -76,6 +77,10 @@ public class JwtService {
 
   public String extractAreaId(String token) {
     return extractClaim(token, claims -> claims.get("areaId", String.class));
+  }
+
+  public String extractUserId(String token) {
+    return extractClaim(token, claims -> claims.get("userId", String.class));
   }
 
   private Claims extractAllClaims(String token) {
