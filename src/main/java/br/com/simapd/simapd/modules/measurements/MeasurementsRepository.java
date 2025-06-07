@@ -17,8 +17,8 @@ public interface MeasurementsRepository extends JpaRepository<MeasurementsEntity
     @Query("SELECT m FROM MeasurementsEntity m " +
            "WHERE (:sensorId IS NULL OR m.sensorId = :sensorId) " +
            "AND (:areaId IS NULL OR m.areaId = :areaId) " +
-           "AND (:startDate IS NULL OR DATE(m.measuredAt) >= :startDate) " +
-           "AND (:endDate IS NULL OR DATE(m.measuredAt) <= :endDate) " +
+           "AND (:startDate IS NULL OR CAST(m.measuredAt AS date) >= :startDate) " +
+           "AND (:endDate IS NULL OR CAST(m.measuredAt AS date) <= :endDate) " +
            "ORDER BY m.measuredAt")
     List<MeasurementsEntity> findMeasurementsForAggregation(
             @Param("sensorId") String sensorId,
