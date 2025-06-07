@@ -46,14 +46,28 @@ public class MeasurementsController {
         .orElse(ResponseEntity.notFound().build());
   }
 
+  @GetMapping("/filter")
+  public ResponseEntity<List<MeasurementsDTO>> findByFilters(
+      @RequestParam(required = false) String sensorId,
+      @RequestParam(required = false) String areaId,
+      @RequestParam(required = false) Integer type,
+      @RequestParam(required = false) Integer riskLevel) {
+
+    List<MeasurementsDTO> measurements = measurementsCachingUseCase
+        .findByFilters(sensorId, areaId, type, riskLevel);
+
+    return ResponseEntity.ok(measurements);
+  }
+
   @GetMapping("/daily-aggregation")
   public ResponseEntity<List<DailyAggregationDTO>> getDailyAggregation(
       @RequestParam(required = false) String sensorId,
+      @RequestParam(required = false) String areaId,
       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
 
     List<DailyAggregationDTO> aggregations = measurementsCachingUseCase
-        .getDailyAggregation(sensorId, startDate, endDate);
+        .getDailyAggregation(sensorId, areaId, startDate, endDate);
 
     return ResponseEntity.ok(aggregations);
   }
@@ -61,11 +75,12 @@ public class MeasurementsController {
   @GetMapping("/daily-average")
   public ResponseEntity<Double> getDailyAverage(
       @RequestParam(required = false) String sensorId,
+      @RequestParam(required = false) String areaId,
       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
 
     Double averageOfDailyAverages = measurementsCachingUseCase
-        .getAverageOfDailyAverages(sensorId, startDate, endDate);
+        .getAverageOfDailyAverages(sensorId, areaId, startDate, endDate);
 
     return ResponseEntity.ok(averageOfDailyAverages);
   }

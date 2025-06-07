@@ -1,6 +1,5 @@
 package br.com.simapd.simapd.modules.measurements;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -20,8 +19,14 @@ public class MeasurementsEntity {
   @Id
   private String id;
 
-  @Column(name = "measurement_value", nullable = false, precision = 10, scale = 2)
-  private BigDecimal measurementValue;
+  @Column(name = "type", nullable = false)
+  private Integer type;
+
+  @Column(name = "value", nullable = false, columnDefinition = "CLOB")
+  private String value;
+
+  @Column(name = "risk_level", nullable = false)
+  private Integer riskLevel;
 
   @Column(name = "measured_at", nullable = false)
   @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
@@ -30,4 +35,8 @@ public class MeasurementsEntity {
   @Pattern(regexp = "^[a-z0-9]{24}$", message = "Invalid CUID2 format")
   @Column(name = "sensor_id", nullable = false)
   private String sensorId;
+
+  @Pattern(regexp = "^[a-z0-9]{24}$", message = "Invalid CUID2 format")
+  @Column(name = "area_id", nullable = false)
+  private String areaId;
 }

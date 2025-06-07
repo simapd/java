@@ -1,6 +1,5 @@
 package br.com.simapd.simapd.modules.measurements.dto;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -12,10 +11,16 @@ public class MeasurementsDTO {
 
   private String id;
 
-  private BigDecimal measurementValue;
+  private Integer type;
+
+  private String value;
+
+  private Integer riskLevel;
 
   @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
   private LocalDateTime measuredAt;
 
   private String sensorId;
+
+  private String areaId;
 }

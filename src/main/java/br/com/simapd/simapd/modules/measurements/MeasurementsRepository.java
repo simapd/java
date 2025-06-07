@@ -16,13 +16,14 @@ public interface MeasurementsRepository extends JpaRepository<MeasurementsEntity
     @Query(value = """
             SELECT
                 TRUNC(m.measured_at),
-                AVG(m.measurement_value),
+                AVG(JSON_VALUE(m.value, '$.numericValue')),
                 COUNT(*),
-                MIN(m.measurement_value),
-                MAX(m.measurement_value),
-                SUM(m.measurement_value)
+                MIN(JSON_VALUE(m.value, '$.numericValue')),
+                MAX(JSON_VALUE(m.value, '$.numericValue')),
+                SUM(JSON_VALUE(m.value, '$.numericValue'))
             FROM measurement m
             WHERE (:sensorId IS NULL OR m.sensor_id = :sensorId)
+            AND (:areaId IS NULL OR m.area_id = :areaId)
             AND (:startDate IS NULL OR TRUNC(m.measured_at) >= :startDate)
             AND (:endDate IS NULL OR TRUNC(m.measured_at) <= :endDate)
             GROUP BY TRUNC(m.measured_at)
@@ -30,6 +31,20 @@ public interface MeasurementsRepository extends JpaRepository<MeasurementsEntity
             """, nativeQuery = true)
     List<Object[]> findDailyAggregation(
             @Param("sensorId") String sensorId,
+            @Param("areaId") String areaId,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate);
+
+    @Query(value = """
+            SELECT m FROM MeasurementsEntity m
+            WHERE (:sensorId IS NULL OR m.sensorId = :sensorId)
+            AND (:areaId IS NULL OR m.areaId = :areaId)
+            AND (:type IS NULL OR m.type = :type)
+            AND (:riskLevel IS NULL OR m.riskLevel = :riskLevel)
+            """)
+    List<MeasurementsEntity> findByFilters(
+            @Param("sensorId") String sensorId,
+            @Param("areaId") String areaId,
+            @Param("type") Integer type,
+            @Param("riskLevel") Integer riskLevel);
 }
