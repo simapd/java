@@ -14,61 +14,13 @@ public interface MeasurementsRepository extends JpaRepository<MeasurementsEntity
 
     List<MeasurementsEntity> findByAreaId(String areaId);
 
-    @Query(value = """
-            SELECT
-                TRUNC(m.measured_at),
-                AVG(
-                    CASE 
-                        WHEN m.type = 1 THEN CAST(JSON_VALUE(m.value, '$.rainLevel') AS DOUBLE)
-                        WHEN m.type = 2 THEN CAST(JSON_VALUE(m.value, '$.moistureLevel') AS DOUBLE)
-                        WHEN m.type = 3 THEN CAST(JSON_VALUE(m.value, '$.acceleration.magnitude') AS DOUBLE)
-                        WHEN m.type = 4 THEN CAST(JSON_VALUE(m.value, '$.temperature') AS DOUBLE)
-                        ELSE NULL
-                    END
-                ),
-                COUNT(*),
-                MIN(
-                    CASE 
-                        WHEN m.type = 1 THEN CAST(JSON_VALUE(m.value, '$.rainLevel') AS DOUBLE)
-                        WHEN m.type = 2 THEN CAST(JSON_VALUE(m.value, '$.moistureLevel') AS DOUBLE)
-                        WHEN m.type = 3 THEN CAST(JSON_VALUE(m.value, '$.acceleration.magnitude') AS DOUBLE)
-                        WHEN m.type = 4 THEN CAST(JSON_VALUE(m.value, '$.temperature') AS DOUBLE)
-                        ELSE NULL
-                    END
-                ),
-                MAX(
-                    CASE 
-                        WHEN m.type = 1 THEN CAST(JSON_VALUE(m.value, '$.rainLevel') AS DOUBLE)
-                        WHEN m.type = 2 THEN CAST(JSON_VALUE(m.value, '$.moistureLevel') AS DOUBLE)
-                        WHEN m.type = 3 THEN CAST(JSON_VALUE(m.value, '$.acceleration.magnitude') AS DOUBLE)
-                        WHEN m.type = 4 THEN CAST(JSON_VALUE(m.value, '$.temperature') AS DOUBLE)
-                        ELSE NULL
-                    END
-                ),
-                SUM(
-                    CASE 
-                        WHEN m.type = 1 THEN CAST(JSON_VALUE(m.value, '$.rainLevel') AS DOUBLE)
-                        WHEN m.type = 2 THEN CAST(JSON_VALUE(m.value, '$.moistureLevel') AS DOUBLE)
-                        WHEN m.type = 3 THEN CAST(JSON_VALUE(m.value, '$.acceleration.magnitude') AS DOUBLE)
-                        WHEN m.type = 4 THEN CAST(JSON_VALUE(m.value, '$.temperature') AS DOUBLE)
-                        ELSE NULL
-                    END
-                )
-            FROM measurement m
-            WHERE (:sensorId IS NULL OR m.sensor_id = :sensorId)
-            AND (:areaId IS NULL OR m.area_id = :areaId)
-            AND (:startDate IS NULL OR TRUNC(m.measured_at) >= :startDate)
-            AND (:endDate IS NULL OR TRUNC(m.measured_at) <= :endDate)
-            AND (
-                (m.type = 1 AND JSON_VALUE(m.value, '$.rainLevel') IS NOT NULL) OR
-                (m.type = 2 AND JSON_VALUE(m.value, '$.moistureLevel') IS NOT NULL) OR
-                (m.type = 3 AND JSON_VALUE(m.value, '$.acceleration.magnitude') IS NOT NULL) OR
-                (m.type = 4 AND JSON_VALUE(m.value, '$.temperature') IS NOT NULL)
-            )
-            GROUP BY TRUNC(m.measured_at)
-            ORDER BY TRUNC(m.measured_at)
-            """, nativeQuery = true)
-    List<Object[]> findDailyAggregation(
+    @Query("SELECT m FROM MeasurementsEntity m " +
+           "WHERE (:sensorId IS NULL OR m.sensorId = :sensorId) " +
+           "AND (:areaId IS NULL OR m.areaId = :areaId) " +
+           "AND (:startDate IS NULL OR DATE(m.measuredAt) >= :startDate) " +
+           "AND (:endDate IS NULL OR DATE(m.measuredAt) <= :endDate) " +
+           "ORDER BY m.measuredAt")
+    List<MeasurementsEntity> findMeasurementsForAggregation(
             @Param("sensorId") String sensorId,
             @Param("areaId") String areaId,
             @Param("startDate") LocalDate startDate,

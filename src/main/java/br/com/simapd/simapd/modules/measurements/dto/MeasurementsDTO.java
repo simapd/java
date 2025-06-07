@@ -10,6 +10,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.annotation.JsonGetter;
 
 @Data
 public class MeasurementsDTO {
@@ -23,6 +26,16 @@ public class MeasurementsDTO {
 
   @NotBlank(message = "Value cannot be blank")
   private String value;
+
+  @JsonGetter("value")
+  public JsonNode getValueAsJson() {
+    try {
+      ObjectMapper mapper = new ObjectMapper();
+      return mapper.readTree(value);
+    } catch (Exception e) {
+      return null;
+    }
+  }
 
   @NotNull(message = "Risk level cannot be null")
   @Min(value = 1, message = "Risk level must be between 1 and 4")

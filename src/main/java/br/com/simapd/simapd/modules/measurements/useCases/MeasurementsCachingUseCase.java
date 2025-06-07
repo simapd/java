@@ -17,6 +17,7 @@ import br.com.simapd.simapd.modules.measurements.MeasurementsRepository;
 import br.com.simapd.simapd.modules.measurements.dto.DailyAggregationDTO;
 import br.com.simapd.simapd.modules.measurements.dto.MeasurementsDTO;
 import br.com.simapd.simapd.modules.measurements.mapper.MeasurementsMapper;
+import br.com.simapd.simapd.modules.measurements.utils.MeasurementAggregator;
 
 @Service
 public class MeasurementsCachingUseCase {
@@ -26,6 +27,9 @@ public class MeasurementsCachingUseCase {
 
     @Autowired
     private MeasurementsMapper measurementsMapper;
+
+    @Autowired
+    private MeasurementAggregator measurementAggregator;
 
     @Cacheable(value = "measurements-by-id", key = "#id")
     public Optional<MeasurementsDTO> findById(String id) {
@@ -66,17 +70,8 @@ public class MeasurementsCachingUseCase {
     @Cacheable(value = "daily-aggregations", key = "#sensorId + '_' + #areaId + '_' + #startDate + '_' + #endDate")
     public List<DailyAggregationDTO> getDailyAggregation(String sensorId, String areaId, LocalDate startDate,
             LocalDate endDate) {
-        List<Object[]> results = measurementsRepository.findDailyAggregation(sensorId, areaId, startDate, endDate);
-
-        return results.stream()
-                .map(row -> new DailyAggregationDTO(
-                        ((java.sql.Timestamp) row[0]).toLocalDateTime().toLocalDate(),
-                        row[1] != null ? ((Number) row[1]).doubleValue() : 0.0,
-                        ((Number) row[2]).longValue(),
-                        row[3] != null ? ((Number) row[3]).doubleValue() : 0.0,
-                        row[4] != null ? ((Number) row[4]).doubleValue() : 0.0,
-                        row[5] != null ? ((Number) row[5]).doubleValue() : 0.0))
-                .collect(Collectors.toList());
+        List<MeasurementsEntity> measurements = measurementsRepository.findMeasurementsForAggregation(sensorId, areaId, startDate, endDate);
+        return measurementAggregator.processAggregation(measurements);
     }
 
     @Cacheable(value = "daily-aggregations", key = "'avg_' + #sensorId + '_' + #areaId + '_' + #startDate + '_' + #endDate")
