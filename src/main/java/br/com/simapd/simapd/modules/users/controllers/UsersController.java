@@ -23,10 +23,19 @@ import br.com.simapd.simapd.modules.users.useCases.DeleteUserUseCase;
 import br.com.simapd.simapd.modules.users.useCases.GetAllUsersUseCase;
 import br.com.simapd.simapd.modules.users.useCases.GetUserByIdUseCase;
 import br.com.simapd.simapd.modules.users.useCases.UpdateUserUseCase;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/users")
+@Tag(name = "Usuários", description = "Endpoints para gerenciamento de usuários do sistema")
 public class UsersController {
 
   @Autowired
@@ -45,6 +54,25 @@ public class UsersController {
   private DeleteUserUseCase deleteUserUseCase;
 
   @PostMapping("/register")
+  @Operation(
+    summary = "Registrar novo usuário",
+    description = "Cria um novo usuário no sistema e retorna os dados do usuário criado junto com o token JWT"
+  )
+  @ApiResponses(value = {
+    @ApiResponse(
+      responseCode = "201",
+      description = "Usuário criado com sucesso",
+      content = @Content(
+        mediaType = "application/json",
+        schema = @Schema(implementation = LoginResponseDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "400",
+      description = "Dados inválidos ou email já cadastrado",
+      content = @Content
+    )
+  })
   public ResponseEntity<LoginResponseDTO> createUser(@Valid @RequestBody CreateUserRequestDTO createUserRequestDTO) {
     try {
       LoginResponseDTO user = createUserUseCase.execute(createUserRequestDTO);
@@ -55,13 +83,60 @@ public class UsersController {
   }
 
   @GetMapping
-  public ResponseEntity<Page<UserResponseDTO>> getAllUsers(Pageable pageable) {
+  @Operation(
+    summary = "Listar todos os usuários",
+    description = "Retorna uma lista paginada de todos os usuários cadastrados no sistema"
+  )
+  @ApiResponses(value = {
+    @ApiResponse(
+      responseCode = "200",
+      description = "Lista de usuários obtida com sucesso",
+      content = @Content(
+        mediaType = "application/json",
+        schema = @Schema(implementation = Page.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "401",
+      description = "Token inválido ou expirado",
+      content = @Content
+    )
+  })
+  @SecurityRequirement(name = "bearerAuth")
+  public ResponseEntity<Page<UserResponseDTO>> getAllUsers(
+    @Parameter(description = "Parâmetros de paginação") Pageable pageable) {
     Page<UserResponseDTO> users = getAllUsersUseCase.execute(pageable);
     return ResponseEntity.ok(users);
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<UserResponseDTO> getUserById(@PathVariable String id) {
+  @Operation(
+    summary = "Buscar usuário por ID",
+    description = "Retorna os dados de um usuário específico baseado no seu ID"
+  )
+  @ApiResponses(value = {
+    @ApiResponse(
+      responseCode = "200",
+      description = "Usuário encontrado com sucesso",
+      content = @Content(
+        mediaType = "application/json",
+        schema = @Schema(implementation = UserResponseDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "404",
+      description = "Usuário não encontrado",
+      content = @Content
+    ),
+    @ApiResponse(
+      responseCode = "401",
+      description = "Token inválido ou expirado",
+      content = @Content
+    )
+  })
+  @SecurityRequirement(name = "bearerAuth")
+  public ResponseEntity<UserResponseDTO> getUserById(
+    @Parameter(description = "ID único do usuário", required = true) @PathVariable String id) {
     try {
       UserResponseDTO user = getUserByIdUseCase.execute(id);
       return ResponseEntity.ok(user);
@@ -71,8 +146,38 @@ public class UsersController {
   }
 
   @PutMapping("/{id}")
+  @Operation(
+    summary = "Atualizar usuário",
+    description = "Atualiza os dados de um usuário existente"
+  )
+  @ApiResponses(value = {
+    @ApiResponse(
+      responseCode = "200",
+      description = "Usuário atualizado com sucesso",
+      content = @Content(
+        mediaType = "application/json",
+        schema = @Schema(implementation = UserResponseDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "400",
+      description = "Dados inválidos",
+      content = @Content
+    ),
+    @ApiResponse(
+      responseCode = "404",
+      description = "Usuário não encontrado",
+      content = @Content
+    ),
+    @ApiResponse(
+      responseCode = "401",
+      description = "Token inválido ou expirado",
+      content = @Content
+    )
+  })
+  @SecurityRequirement(name = "bearerAuth")
   public ResponseEntity<UserResponseDTO> updateUser(
-      @PathVariable String id,
+      @Parameter(description = "ID único do usuário", required = true) @PathVariable String id,
       @Valid @RequestBody UpdateUserRequestDTO updateUserRequestDTO) {
     try {
       UserResponseDTO user = updateUserUseCase.execute(id, updateUserRequestDTO);
@@ -83,7 +188,30 @@ public class UsersController {
   }
 
   @DeleteMapping("/{id}")
-  public ResponseEntity<Void> deleteUser(@PathVariable String id) {
+  @Operation(
+    summary = "Excluir usuário",
+    description = "Remove um usuário do sistema permanentemente"
+  )
+  @ApiResponses(value = {
+    @ApiResponse(
+      responseCode = "204",
+      description = "Usuário excluído com sucesso",
+      content = @Content
+    ),
+    @ApiResponse(
+      responseCode = "404",
+      description = "Usuário não encontrado",
+      content = @Content
+    ),
+    @ApiResponse(
+      responseCode = "401",
+      description = "Token inválido ou expirado",
+      content = @Content
+    )
+  })
+  @SecurityRequirement(name = "bearerAuth")
+  public ResponseEntity<Void> deleteUser(
+    @Parameter(description = "ID único do usuário", required = true) @PathVariable String id) {
     try {
       deleteUserUseCase.execute(id);
       return ResponseEntity.noContent().build();

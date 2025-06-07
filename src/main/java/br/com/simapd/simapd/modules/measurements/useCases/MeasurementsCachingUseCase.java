@@ -17,6 +17,7 @@ import br.com.simapd.simapd.modules.measurements.MeasurementsRepository;
 import br.com.simapd.simapd.modules.measurements.dto.DailyAggregationDTO;
 import br.com.simapd.simapd.modules.measurements.dto.MeasurementsDTO;
 import br.com.simapd.simapd.modules.measurements.mapper.MeasurementsMapper;
+import br.com.simapd.simapd.modules.measurements.utils.MeasurementAggregator;
 
 @Service
 public class MeasurementsCachingUseCase {
@@ -26,6 +27,9 @@ public class MeasurementsCachingUseCase {
 
     @Autowired
     private MeasurementsMapper measurementsMapper;
+
+    @Autowired
+    private MeasurementAggregator measurementAggregator;
 
     @Cacheable(value = "measurements-by-id", key = "#id")
     public Optional<MeasurementsDTO> findById(String id) {
@@ -40,30 +44,39 @@ public class MeasurementsCachingUseCase {
     }
 
     @Cacheable(value = "measurements-by-sensor", key = "#sensorId")
-    public Optional<MeasurementsDTO> findBySensorId(String sensorId) {
-        MeasurementsEntity entity = measurementsRepository.findBySensorId(sensorId);
-        return Optional.ofNullable(entity)
-                .map(measurementsMapper::toDTO);
-    }
-
-    @Cacheable(value = "daily-aggregations", key = "#sensorId + '_' + #startDate + '_' + #endDate")
-    public List<DailyAggregationDTO> getDailyAggregation(String sensorId, LocalDate startDate, LocalDate endDate) {
-        List<Object[]> results = measurementsRepository.findDailyAggregation(sensorId, startDate, endDate);
-
-        return results.stream()
-                .map(row -> new DailyAggregationDTO(
-                        ((java.sql.Timestamp) row[0]).toLocalDateTime().toLocalDate(),
-                        ((Number) row[1]).doubleValue(),
-                        ((Number) row[2]).longValue(),
-                        ((Number) row[3]).doubleValue(),
-                        ((Number) row[4]).doubleValue(),
-                        ((Number) row[5]).doubleValue()))
+    public List<MeasurementsDTO> findBySensorId(String sensorId) {
+        List<MeasurementsEntity> entities = measurementsRepository.findBySensorId(sensorId);
+        return entities.stream()
+                .map(measurementsMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
-    @Cacheable(value = "daily-aggregations", key = "'avg_' + #sensorId + '_' + #startDate + '_' + #endDate")
-    public Double getAverageOfDailyAverages(String sensorId, LocalDate startDate, LocalDate endDate) {
-        List<DailyAggregationDTO> dailyAggregations = getDailyAggregation(sensorId, startDate, endDate);
+    @Cacheable(value = "measurements-by-area", key = "#areaId")
+    public List<MeasurementsDTO> findByAreaId(String areaId) {
+        List<MeasurementsEntity> entities = measurementsRepository.findByAreaId(areaId);
+        return entities.stream()
+                .map(measurementsMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Cacheable(value = "measurements-by-filters", key = "#sensorId + '_' + #areaId + '_' + #type + '_' + #riskLevel")
+    public List<MeasurementsDTO> findByFilters(String sensorId, String areaId, Integer type, Integer riskLevel) {
+        List<MeasurementsEntity> entities = measurementsRepository.findByFilters(sensorId, areaId, type, riskLevel);
+        return entities.stream()
+                .map(measurementsMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Cacheable(value = "daily-aggregations", key = "#sensorId + '_' + #areaId + '_' + #startDate + '_' + #endDate")
+    public List<DailyAggregationDTO> getDailyAggregation(String sensorId, String areaId, LocalDate startDate,
+            LocalDate endDate) {
+        List<MeasurementsEntity> measurements = measurementsRepository.findMeasurementsForAggregation(sensorId, areaId, startDate, endDate);
+        return measurementAggregator.processAggregation(measurements);
+    }
+
+    @Cacheable(value = "daily-aggregations", key = "'avg_' + #sensorId + '_' + #areaId + '_' + #startDate + '_' + #endDate")
+    public Double getAverageOfDailyAverages(String sensorId, String areaId, LocalDate startDate, LocalDate endDate) {
+        List<DailyAggregationDTO> dailyAggregations = getDailyAggregation(sensorId, areaId, startDate, endDate);
 
         return dailyAggregations.stream()
                 .mapToDouble(DailyAggregationDTO::getAverageValue)
@@ -72,7 +85,7 @@ public class MeasurementsCachingUseCase {
     }
 
     @CacheEvict(value = { "measurements-by-id", "measurements-pages", "measurements-by-sensor",
-            "daily-aggregations" }, allEntries = true)
+            "measurements-by-area", "measurements-by-filters", "daily-aggregations" }, allEntries = true)
     public void clearCache() {
     }
 }

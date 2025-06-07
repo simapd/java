@@ -27,11 +27,21 @@ import br.com.simapd.simapd.modules.userReports.useCases.CreateUserReportsUseCas
 import br.com.simapd.simapd.modules.userReports.useCases.DeleteUserReportsUseCase;
 import br.com.simapd.simapd.modules.userReports.useCases.UpdateUserReportsUseCase;
 import br.com.simapd.simapd.modules.userReports.useCases.UserReportsCachingUseCase;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/user-reports")
+@Tag(name = "Relatórios de Usuários", description = "Endpoints para gerenciamento de relatórios enviados pelos usuários")
+@SecurityRequirement(name = "bearerAuth")
 public class UserReportsController {
 
   @Autowired
@@ -47,6 +57,35 @@ public class UserReportsController {
   private UserReportsCachingUseCase userReportsCachingUseCase;
 
   @PostMapping
+  @Operation(
+    summary = "Criar relatório de usuário",
+    description = "Cria um novo relatório enviado por um usuário sobre uma situação ou problema em uma área"
+  )
+  @ApiResponses(value = {
+    @ApiResponse(
+      responseCode = "201",
+      description = "Relatório criado com sucesso",
+      content = @Content(
+        mediaType = "application/json",
+        schema = @Schema(implementation = UserReportsDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "400",
+      description = "Dados inválidos",
+      content = @Content
+    ),
+    @ApiResponse(
+      responseCode = "404",
+      description = "Usuário ou área não encontrados",
+      content = @Content
+    ),
+    @ApiResponse(
+      responseCode = "401",
+      description = "Token inválido ou expirado",
+      content = @Content
+    )
+  })
   public ResponseEntity<Object> create(@Valid @RequestBody UserReportsDTO userReportsDTO) {
     try {
       UserReportsDTO createdReport = createUserReportsUseCase.execute(userReportsDTO);
@@ -59,11 +98,40 @@ public class UserReportsController {
   }
 
   @GetMapping
+  @Operation(
+    summary = "Listar todos os relatórios de usuários",
+    description = "Retorna uma lista paginada e ordenada de todos os relatórios enviados pelos usuários"
+  )
+  @ApiResponses(value = {
+    @ApiResponse(
+      responseCode = "200",
+      description = "Lista de relatórios obtida com sucesso",
+      content = @Content(
+        mediaType = "application/json",
+        schema = @Schema(implementation = Page.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "404",
+      description = "Nenhum relatório encontrado",
+      content = @Content
+    ),
+    @ApiResponse(
+      responseCode = "400",
+      description = "Erro na consulta",
+      content = @Content
+    ),
+    @ApiResponse(
+      responseCode = "401",
+      description = "Token inválido ou expirado",
+      content = @Content
+    )
+  })
   public ResponseEntity<Object> findAll(
-      @RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "10") int size,
-      @RequestParam(defaultValue = "reportedAt") String sortBy,
-      @RequestParam(defaultValue = "desc") String sortDir) {
+      @Parameter(description = "Número da página (inicia em 0)") @RequestParam(defaultValue = "0") int page,
+      @Parameter(description = "Tamanho da página") @RequestParam(defaultValue = "10") int size,
+      @Parameter(description = "Campo para ordenação") @RequestParam(defaultValue = "reportedAt") String sortBy,
+      @Parameter(description = "Direção da ordenação (asc/desc)") @RequestParam(defaultValue = "desc") String sortDir) {
 
     try {
       Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
@@ -83,7 +151,37 @@ public class UserReportsController {
   }
 
   @GetMapping("/{id}")
-  public ResponseEntity<Object> findById(@PathVariable String id) {
+  @Operation(
+    summary = "Buscar relatório por ID",
+    description = "Retorna um relatório específico baseado no seu ID único"
+  )
+  @ApiResponses(value = {
+    @ApiResponse(
+      responseCode = "200",
+      description = "Relatório encontrado com sucesso",
+      content = @Content(
+        mediaType = "application/json",
+        schema = @Schema(implementation = UserReportsDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "404",
+      description = "Relatório não encontrado",
+      content = @Content
+    ),
+    @ApiResponse(
+      responseCode = "400",
+      description = "Erro na consulta",
+      content = @Content
+    ),
+    @ApiResponse(
+      responseCode = "401",
+      description = "Token inválido ou expirado",
+      content = @Content
+    )
+  })
+  public ResponseEntity<Object> findById(
+    @Parameter(description = "ID único do relatório", required = true) @PathVariable String id) {
     try {
       Optional<UserReportsEntity> entity = userReportsCachingUseCase.findById(id);
 
@@ -99,12 +197,41 @@ public class UserReportsController {
   }
 
   @GetMapping("/area/{areaId}")
+  @Operation(
+    summary = "Buscar relatórios por área",
+    description = "Retorna todos os relatórios enviados para uma área específica, com paginação e ordenação"
+  )
+  @ApiResponses(value = {
+    @ApiResponse(
+      responseCode = "200",
+      description = "Relatórios da área obtidos com sucesso",
+      content = @Content(
+        mediaType = "application/json",
+        schema = @Schema(implementation = Page.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "404",
+      description = "Nenhum relatório encontrado para esta área",
+      content = @Content
+    ),
+    @ApiResponse(
+      responseCode = "400",
+      description = "Erro na consulta",
+      content = @Content
+    ),
+    @ApiResponse(
+      responseCode = "401",
+      description = "Token inválido ou expirado",
+      content = @Content
+    )
+  })
   public ResponseEntity<Object> findByAreaId(
-      @PathVariable String areaId,
-      @RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "10") int size,
-      @RequestParam(defaultValue = "reportedAt") String sortBy,
-      @RequestParam(defaultValue = "desc") String sortDir) {
+      @Parameter(description = "ID único da área", required = true) @PathVariable String areaId,
+      @Parameter(description = "Número da página (inicia em 0)") @RequestParam(defaultValue = "0") int page,
+      @Parameter(description = "Tamanho da página") @RequestParam(defaultValue = "10") int size,
+      @Parameter(description = "Campo para ordenação") @RequestParam(defaultValue = "reportedAt") String sortBy,
+      @Parameter(description = "Direção da ordenação (asc/desc)") @RequestParam(defaultValue = "desc") String sortDir) {
 
     try {
       Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
@@ -124,7 +251,38 @@ public class UserReportsController {
   }
 
   @PutMapping("/{id}")
-  public ResponseEntity<Object> update(@PathVariable String id, @Valid @RequestBody UpdateUserReportsDTO updateDTO) {
+  @Operation(
+    summary = "Atualizar relatório de usuário",
+    description = "Atualiza os dados de um relatório existente, como descrição, status de verificação ou localização"
+  )
+  @ApiResponses(value = {
+    @ApiResponse(
+      responseCode = "200",
+      description = "Relatório atualizado com sucesso",
+      content = @Content(
+        mediaType = "application/json",
+        schema = @Schema(implementation = UserReportsDTO.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "404",
+      description = "Relatório não encontrado",
+      content = @Content
+    ),
+    @ApiResponse(
+      responseCode = "400",
+      description = "Dados inválidos ou erro na atualização",
+      content = @Content
+    ),
+    @ApiResponse(
+      responseCode = "401",
+      description = "Token inválido ou expirado",
+      content = @Content
+    )
+  })
+  public ResponseEntity<Object> update(
+    @Parameter(description = "ID único do relatório", required = true) @PathVariable String id, 
+    @Valid @RequestBody UpdateUserReportsDTO updateDTO) {
     try {
       UserReportsDTO updatedReport = updateUserReportsUseCase.execute(id, updateDTO);
       return ResponseEntity.ok(updatedReport);
@@ -136,7 +294,34 @@ public class UserReportsController {
   }
 
   @DeleteMapping("/{id}")
-  public ResponseEntity<Object> delete(@PathVariable String id) {
+  @Operation(
+    summary = "Excluir relatório de usuário",
+    description = "Remove um relatório do sistema permanentemente. Esta ação não pode ser desfeita"
+  )
+  @ApiResponses(value = {
+    @ApiResponse(
+      responseCode = "204",
+      description = "Relatório excluído com sucesso",
+      content = @Content
+    ),
+    @ApiResponse(
+      responseCode = "404",
+      description = "Relatório não encontrado",
+      content = @Content
+    ),
+    @ApiResponse(
+      responseCode = "400",
+      description = "Erro na exclusão",
+      content = @Content
+    ),
+    @ApiResponse(
+      responseCode = "401",
+      description = "Token inválido ou expirado",
+      content = @Content
+    )
+  })
+  public ResponseEntity<Object> delete(
+    @Parameter(description = "ID único do relatório", required = true) @PathVariable String id) {
     try {
       deleteUserReportsUseCase.execute(id);
       return ResponseEntity.noContent().build();
@@ -148,12 +333,41 @@ public class UserReportsController {
   }
 
   @GetMapping("/user/{userId}")
+  @Operation(
+    summary = "Buscar relatórios por usuário",
+    description = "Retorna todos os relatórios enviados por um usuário específico, com paginação e ordenação"
+  )
+  @ApiResponses(value = {
+    @ApiResponse(
+      responseCode = "200",
+      description = "Relatórios do usuário obtidos com sucesso",
+      content = @Content(
+        mediaType = "application/json",
+        schema = @Schema(implementation = Page.class)
+      )
+    ),
+    @ApiResponse(
+      responseCode = "404",
+      description = "Nenhum relatório encontrado para este usuário",
+      content = @Content
+    ),
+    @ApiResponse(
+      responseCode = "400",
+      description = "Erro na consulta",
+      content = @Content
+    ),
+    @ApiResponse(
+      responseCode = "401",
+      description = "Token inválido ou expirado",
+      content = @Content
+    )
+  })
   public ResponseEntity<Object> findByUserId(
-      @PathVariable String userId,
-      @RequestParam(defaultValue = "0") int page,
-      @RequestParam(defaultValue = "10") int size,
-      @RequestParam(defaultValue = "reportedAt") String sortBy,
-      @RequestParam(defaultValue = "desc") String sortDir) {
+      @Parameter(description = "ID único do usuário", required = true) @PathVariable String userId,
+      @Parameter(description = "Número da página (inicia em 0)") @RequestParam(defaultValue = "0") int page,
+      @Parameter(description = "Tamanho da página") @RequestParam(defaultValue = "10") int size,
+      @Parameter(description = "Campo para ordenação") @RequestParam(defaultValue = "reportedAt") String sortBy,
+      @Parameter(description = "Direção da ordenação (asc/desc)") @RequestParam(defaultValue = "desc") String sortDir) {
 
     try {
       Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();

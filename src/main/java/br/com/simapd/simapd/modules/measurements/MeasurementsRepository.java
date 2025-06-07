@@ -2,7 +2,6 @@ package br.com.simapd.simapd.modules.measurements;
 
 import java.time.LocalDate;
 import java.util.List;
-
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -11,25 +10,33 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface MeasurementsRepository extends JpaRepository<MeasurementsEntity, String> {
 
-    MeasurementsEntity findBySensorId(String sensorId);
+    List<MeasurementsEntity> findBySensorId(String sensorId);
 
-    @Query(value = """
-            SELECT
-                TRUNC(m.measured_at),
-                AVG(m.measurement_value),
-                COUNT(*),
-                MIN(m.measurement_value),
-                MAX(m.measurement_value),
-                SUM(m.measurement_value)
-            FROM measurement m
-            WHERE (:sensorId IS NULL OR m.sensor_id = :sensorId)
-            AND (:startDate IS NULL OR TRUNC(m.measured_at) >= :startDate)
-            AND (:endDate IS NULL OR TRUNC(m.measured_at) <= :endDate)
-            GROUP BY TRUNC(m.measured_at)
-            ORDER BY TRUNC(m.measured_at)
-            """, nativeQuery = true)
-    List<Object[]> findDailyAggregation(
+    List<MeasurementsEntity> findByAreaId(String areaId);
+
+    @Query("SELECT m FROM MeasurementsEntity m " +
+           "WHERE (:sensorId IS NULL OR m.sensorId = :sensorId) " +
+           "AND (:areaId IS NULL OR m.areaId = :areaId) " +
+           "AND (:startDate IS NULL OR CAST(m.measuredAt AS date) >= :startDate) " +
+           "AND (:endDate IS NULL OR CAST(m.measuredAt AS date) <= :endDate) " +
+           "ORDER BY m.measuredAt")
+    List<MeasurementsEntity> findMeasurementsForAggregation(
             @Param("sensorId") String sensorId,
+            @Param("areaId") String areaId,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate);
+
+    @Query(value = """
+            SELECT m FROM MeasurementsEntity m
+            WHERE (:sensorId IS NULL OR m.sensorId = :sensorId)
+            AND (:areaId IS NULL OR m.areaId = :areaId)
+            AND (:type IS NULL OR m.type = :type)
+            AND (:riskLevel IS NULL OR m.riskLevel = :riskLevel)
+            ORDER BY m.measuredAt DESC
+            """)
+    List<MeasurementsEntity> findByFilters(
+            @Param("sensorId") String sensorId,
+            @Param("areaId") String areaId,
+            @Param("type") Integer type,
+            @Param("riskLevel") Integer riskLevel);
 }
