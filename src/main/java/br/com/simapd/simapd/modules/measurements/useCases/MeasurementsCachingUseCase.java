@@ -71,11 +71,11 @@ public class MeasurementsCachingUseCase {
         return results.stream()
                 .map(row -> new DailyAggregationDTO(
                         ((java.sql.Timestamp) row[0]).toLocalDateTime().toLocalDate(),
-                        ((Number) row[1]).doubleValue(),
+                        row[1] != null ? ((Number) row[1]).doubleValue() : 0.0,
                         ((Number) row[2]).longValue(),
-                        ((Number) row[3]).doubleValue(),
-                        ((Number) row[4]).doubleValue(),
-                        ((Number) row[5]).doubleValue()))
+                        row[3] != null ? ((Number) row[3]).doubleValue() : 0.0,
+                        row[4] != null ? ((Number) row[4]).doubleValue() : 0.0,
+                        row[5] != null ? ((Number) row[5]).doubleValue() : 0.0))
                 .collect(Collectors.toList());
     }
 
