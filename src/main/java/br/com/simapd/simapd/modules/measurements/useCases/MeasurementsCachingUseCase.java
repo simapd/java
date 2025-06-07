@@ -46,6 +46,14 @@ public class MeasurementsCachingUseCase {
                 .map(measurementsMapper::toDTO);
     }
 
+    @Cacheable(value = "measurements-by-area", key = "#areaId")
+    public List<MeasurementsDTO> findByAreaId(String areaId) {
+        List<MeasurementsEntity> entities = measurementsRepository.findByAreaId(areaId);
+        return entities.stream()
+                .map(measurementsMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
     @Cacheable(value = "measurements-by-filters", key = "#sensorId + '_' + #areaId + '_' + #type + '_' + #riskLevel")
     public List<MeasurementsDTO> findByFilters(String sensorId, String areaId, Integer type, Integer riskLevel) {
         List<MeasurementsEntity> entities = measurementsRepository.findByFilters(sensorId, areaId, type, riskLevel);
@@ -81,7 +89,7 @@ public class MeasurementsCachingUseCase {
     }
 
     @CacheEvict(value = { "measurements-by-id", "measurements-pages", "measurements-by-sensor",
-            "measurements-by-filters", "daily-aggregations" }, allEntries = true)
+            "measurements-by-area", "measurements-by-filters", "daily-aggregations" }, allEntries = true)
     public void clearCache() {
     }
 }

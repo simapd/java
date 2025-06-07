@@ -46,6 +46,12 @@ public class MeasurementsController {
         .orElse(ResponseEntity.notFound().build());
   }
 
+  @GetMapping("/area/{areaId}")
+  public ResponseEntity<List<MeasurementsDTO>> findByAreaId(@PathVariable String areaId) {
+    List<MeasurementsDTO> measurements = measurementsCachingUseCase.findByAreaId(areaId);
+    return ResponseEntity.ok(measurements);
+  }
+
   @GetMapping("/filter")
   public ResponseEntity<List<MeasurementsDTO>> findByFilters(
       @RequestParam(required = false) String sensorId,

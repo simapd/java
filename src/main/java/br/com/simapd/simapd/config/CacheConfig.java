@@ -23,7 +23,8 @@ public class CacheConfig {
         "measurements-by-id",
         "measurements-pages",
         "measurements-by-sensor",
-        "daily-aggregations");
+        "daily-aggregations",
+        "measurements-by-area");
     cacheManager.setCaffeine(Caffeine.newBuilder()
         .maximumSize(1000)
         .expireAfterWrite(Duration.ofMinutes(30))
