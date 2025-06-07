@@ -40,10 +40,9 @@ public class MeasurementsController {
   }
 
   @GetMapping("/sensor/{sensorId}")
-  public ResponseEntity<MeasurementsDTO> findBySensorId(@PathVariable String sensorId) {
-    Optional<MeasurementsDTO> measurement = measurementsCachingUseCase.findBySensorId(sensorId);
-    return measurement.map(ResponseEntity::ok)
-        .orElse(ResponseEntity.notFound().build());
+  public ResponseEntity<List<MeasurementsDTO>> findBySensorId(@PathVariable String sensorId) {
+    List<MeasurementsDTO> measurements = measurementsCachingUseCase.findBySensorId(sensorId);
+    return ResponseEntity.ok(measurements);
   }
 
   @GetMapping("/area/{areaId}")

@@ -40,10 +40,11 @@ public class MeasurementsCachingUseCase {
     }
 
     @Cacheable(value = "measurements-by-sensor", key = "#sensorId")
-    public Optional<MeasurementsDTO> findBySensorId(String sensorId) {
-        MeasurementsEntity entity = measurementsRepository.findBySensorId(sensorId);
-        return Optional.ofNullable(entity)
-                .map(measurementsMapper::toDTO);
+    public List<MeasurementsDTO> findBySensorId(String sensorId) {
+        List<MeasurementsEntity> entities = measurementsRepository.findBySensorId(sensorId);
+        return entities.stream()
+                .map(measurementsMapper::toDTO)
+                .collect(Collectors.toList());
     }
 
     @Cacheable(value = "measurements-by-area", key = "#areaId")

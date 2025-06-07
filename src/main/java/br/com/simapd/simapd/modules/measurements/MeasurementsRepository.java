@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface MeasurementsRepository extends JpaRepository<MeasurementsEntity, String> {
 
-    MeasurementsEntity findBySensorId(String sensorId);
+    List<MeasurementsEntity> findBySensorId(String sensorId);
 
     List<MeasurementsEntity> findByAreaId(String areaId);
 
